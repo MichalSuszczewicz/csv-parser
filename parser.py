@@ -33,15 +33,14 @@ cl = ColorLog()
 
 
 params = [
-    {"name": "Plays Initiated", "values": [">", 0]},
+    {"name": "Plays Initiated", "values": [">", 5]},
     {"name": "EBVS (%)", "values": ["<", 60]},
     {"name": "Startup Error (%)", "values": ["<", 60]},
 ]
 issues_count = 0
 all_asset = 0
 report_line = ''
-report_true = ''
-#s_report_line = ''
+report_false = ''
 
 devices = ["android", "appletv"]
 
@@ -93,35 +92,33 @@ def check_if_asset_is_accessible():
                  
 def validate_metrics():
     global issues_count
-    global report_line
-    global report_true
+    global report_line, report_false
 
     for title in assets:
-       # report_line += "\n" + title["Title"] + " - " + title["Device"]
         if title["Visibility"] == "Unknown":
-            report_line += "\n" + title["Title"] + " - " + title["Device"]
-           # report_line += title['Title'] + " - " + title["Device"] + " - " + cl.format('red', "Not Found")+'\n'
-            report_line +=  " : %s" % cl.format('red', "Not Found")
+            report_line += "\n" + title["Title"] + " - " + title["Device"] + ": %s" % cl.format('red', "Not Found")
+            report_false += "\n" + title["Title"] + " - " + title["Device"] + ": Not Found"
             issues_count += 1
         else:
             report_line += "\n" + title["Title"] + " - " + title["Device"]
+            report_false += "\n" + title["Title"] + " - " + title["Device"]
             for param in params:
                 if param['values'][0] == ">":
                     if float(title[param['name']]) < param['values'][1]:
-                       # report_line += title['Title'] + " - " + title["Device"] + " - " + cl.format('fail', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), "<", param['values'][1])+'\n'
-                        issues_count +=1
-                        report_line += " %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
+                        issues_count += 1
+                        report_line += ": %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
+                        report_false += ": " + param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
+                        
                     else:
-                     #   report_true += title['Title'] + " - " + title["Device"] + " - " + cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), ">", param['values'][1])+'\n'
-                        report_line += " %s: " % cl.format('green',param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                        report_line += ": %s: " % cl.format('green',param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
                 if param['values'][0] == "<":
                     if float(title[param['name']]) > param['values'][1]:
-                      #  report_line += title['Title'] + " - " + title["Device"] + " - " + cl.format('fail', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), ">", param['values'][1])+'\n'
                         issues_count += 1
-                        report_line += " %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                        report_line += ": %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                        report_false += ": " +param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+
                     else:
-                      #  report_true += title['Title'] + " - " + title["Device"] + " - " + cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), "<", param['values'][1])+'\n'
-                        report_line += " %s: " % cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                        report_line += ": %s: " % cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
 
 
 if __name__ == '__main__':
@@ -144,9 +141,9 @@ if __name__ == '__main__':
     print(report_line)
     
     f = open(out_filename, 'w', encoding='utf-8')
-    f.write("Searching for %s assets" % len(assets) + " among %s assets" % all_asset + "\n\n")
+    f.write("Searched for %s assets" % len(assets) + " among %s assets" % all_asset + "\n\n")
     f.write("%s issues with assets metrics have been found" % issues_count + "\n\n")
-    f.write(report_line.encode().decode('utf-8') + "\n")
+    f.write(report_false + "\n")
     # f.write("Assets and metrics that passed verification: \n\n")
     # f.write(report_true.encode().decode('utf-8') + "\n")
     f.close()
