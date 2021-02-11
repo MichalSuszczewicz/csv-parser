@@ -1,0 +1,152 @@
+import csv
+import os
+from datetime import datetime
+
+# logging coloring
+formatting = "\033[95m\033[94m\033[92m\033[93m\033[91m\033[0m\033[1m\033[4m"
+
+
+class ColorLog:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+    def format(self, coloring, text):
+        output = ''
+
+        if coloring == 'ok' or coloring == 'green' or coloring is True:
+            output = self.OKGREEN + text + self.ENDC
+        elif coloring == 'fail' or coloring == 'red' or coloring is False:
+            output = self.FAIL + text + self.ENDC
+        elif coloring == 'warning' or coloring == 'yellow':
+            output = self.WARNING + text + self.ENDC
+
+        return output
+
+
+cl = ColorLog()
+
+
+params = [
+    {"name": "Plays Initiated", "values": [">", 0]},
+    {"name": "EBVS (%)", "values": ["<", 60]},
+    {"name": "Startup Error (%)", "values": ["<", 60]},
+]
+issues_count = 0
+all_asset = 0
+report_line = ''
+report_true = ''
+#s_report_line = ''
+
+devices = ["android", "appletv"]
+
+with open("movies.txt", "r") as f:
+    titles = [line.strip() for line in f]
+
+
+def create_dict():
+    
+    with open("movies.txt", "r") as f:
+        titles = [line.strip() for line in f]
+    
+    assets = []
+    for i in range(len(titles)):
+        for j in range(len(devices)):
+            asset = {}
+            asset["Title"] = titles[i]
+            asset["Visibility"] = "Unknown"
+            asset["Device"] = devices[j]
+            for param in params:
+                asset[param['name']] = 0.0
+            assets.append(asset)
+            
+    return assets
+   
+
+def check_if_asset_is_accessible():
+    global all_asset
+    
+    for file in os.listdir("."):
+        if ".csv" in file:
+            print("\nWorking with file:" + file+'\n')
+            with open(file) as f:
+                reader = csv.reader(f, delimiter=",")
+                line_count = 0
+                for row in reader:
+                    if line_count == 0:
+                        #print(f'Column names are {", ".join(row)}')
+                        columns = row
+                        line_count += 1
+                    else:
+                        all_asset += 1
+                        for item in assets:
+                            if item["Title"] in row[0] and item["Device"] in file:
+                                    item.update({"Visibility":"Yes"})
+                                    for param in params:
+                                        item.update({param['name']:row[columns.index(param['name'])]})
+              
+                 
+def validate_metrics():
+    global issues_count
+    global report_line
+    global report_true
+
+    for title in assets:
+       # report_line += "\n" + title["Title"] + " - " + title["Device"]
+        if title["Visibility"] == "Unknown":
+            report_line += "\n" + title["Title"] + " - " + title["Device"]
+           # report_line += title['Title'] + " - " + title["Device"] + " - " + cl.format('red', "Not Found")+'\n'
+            report_line +=  " : %s" % cl.format('red', "Not Found")
+            issues_count += 1
+        else:
+            report_line += "\n" + title["Title"] + " - " + title["Device"]
+            for param in params:
+                if param['values'][0] == ">":
+                    if float(title[param['name']]) < param['values'][1]:
+                       # report_line += title['Title'] + " - " + title["Device"] + " - " + cl.format('fail', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), "<", param['values'][1])+'\n'
+                        issues_count +=1
+                        report_line += " %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
+                    else:
+                     #   report_true += title['Title'] + " - " + title["Device"] + " - " + cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), ">", param['values'][1])+'\n'
+                        report_line += " %s: " % cl.format('green',param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                if param['values'][0] == "<":
+                    if float(title[param['name']]) > param['values'][1]:
+                      #  report_line += title['Title'] + " - " + title["Device"] + " - " + cl.format('fail', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), ">", param['values'][1])+'\n'
+                        issues_count += 1
+                        report_line += " %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                    else:
+                      #  report_true += title['Title'] + " - " + title["Device"] + " - " + cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), "<", param['values'][1])+'\n'
+                        report_line += " %s: " % cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+
+
+if __name__ == '__main__':
+
+    time_start = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    assets = create_dict()
+    check_if_asset_is_accessible()
+
+    print("Searched for", len(assets), "assets among ", all_asset, "assets")
+    
+    validate_metrics()
+    out_filename = "results_" + time_start + ".txt"
+    
+    if issues_count == 0:
+        print(cl.format('green', "Everything fine, no issues found") + '\n')
+    elif issues_count == 1:
+        print(cl.format('red', "%s issue has been found, details in results file: ") % issues_count, out_filename + '\n')
+    else:
+        print(cl.format('red', "%s issues have been found, details in results file: ") % issues_count, out_filename + '\n')
+    print(report_line)
+    
+    f = open(out_filename, 'w', encoding='utf-8')
+    f.write("Searching for %s assets" % len(assets) + " among %s assets" % all_asset + "\n\n")
+    f.write("%s issues with assets metrics have been found" % issues_count + "\n\n")
+    f.write(report_line.encode().decode('utf-8') + "\n")
+    # f.write("Assets and metrics that passed verification: \n\n")
+    # f.write(report_true.encode().decode('utf-8') + "\n")
+    f.close()
