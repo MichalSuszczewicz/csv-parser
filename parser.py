@@ -40,7 +40,6 @@ params = [
 issues_count = 0
 all_asset = 0
 report_line = ''
-report_false = ''
 
 devices = ["android", "appletv", "web", "firetv", "androidtv", "roku", "ios"]
 
@@ -93,7 +92,7 @@ def check_if_asset_is_accessible():
                  
 def validate_metrics(out_filename):
     global issues_count
-    global report_line, report_false
+    global report_line
     f = open(out_filename, 'w', encoding='utf-8')
     
     for device in devices:
@@ -126,6 +125,7 @@ def validate_metrics(out_filename):
                                 report_line += "%s: " % cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
     f.close()
 
+
 if __name__ == '__main__':
 
     time_start = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -145,4 +145,5 @@ if __name__ == '__main__':
     else:
         print(cl.format('red', "%s issues have been found, details in results file: ") % issues_count, out_filename + '\n')
     print(report_line)
+    
     # pprint.pprint(assets)
