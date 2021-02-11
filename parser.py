@@ -59,6 +59,7 @@ def create_dict():
             asset["Title"] = titles[i]
             asset["Visibility"] = "Unknown"
             asset["Device"] = devices[j]
+            asset["network"] = 'amc'
             for param in params:
                 asset[param['name']] = 0.0
             assets.append(asset)
@@ -93,30 +94,34 @@ def validate_metrics():
     global issues_count
     global report_line, report_false
 
-    for title in assets:
-        if title["Visibility"] == "Unknown":
-            report_line += "\n" + title["Title"] + " - " + title["Device"] + ": %s" % cl.format('red', "Not Found")
-            report_false += "\n" + title["Title"] + " - " + title["Device"] + ": Not Found"
-            issues_count += 1
-        else:
-            report_line += "\n" + title["Title"] + " - " + title["Device"]
-            report_false += "\n" + title["Title"] + " - " + title["Device"]
-            for param in params:
-                if param['values'][0] == ">":
-                    if float(title[param['name']]) < param['values'][1]:
-                        issues_count += 1
-                        report_line += ": %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
-                        report_false += ": " + param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
-                    else:
-                        report_line += ": %s: " % cl.format('green',param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
-                if param['values'][0] == "<":
-                    if float(title[param['name']]) > param['values'][1]:
-                        issues_count += 1
-                        report_line += ": %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
-                        report_false += ": " +param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+    for device in devices:
+        report_line += cl.format('yellow', "\n\n <==================== %s ====================>" % device)
+        report_false += "\n\n <==================== %s ====================>" % device
+        for title in assets:
+            if device == title["Device"]:
+                if title["Visibility"] == "Unknown":
+                    report_line += "\n" + "{0:<30}".format(title["Title"]) + " - " + title["Device"] + ": %s" % cl.format('red', "Not Found")
+                    report_false += "\n" + "{0:<30}".format(title["Title"]) + " - " + title["Device"] + ": Not Found"
+                    issues_count += 1
+                else:
+                    report_line += "\n" + "{0:<30}".format(title["Title"]) + " - " + title["Device"]
+                    report_false += "\n" + "{0:<30}".format(title["Title"]) + " - " + title["Device"]
+                    for param in params:
+                        if param['values'][0] == ">":
+                            if float(title[param['name']]) < param['values'][1]:
+                                issues_count += 1
+                                report_line += ": %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
+                                report_false += ": " + param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
+                            else:
+                                report_line += ": %s: " % cl.format('green',param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                        if param['values'][0] == "<":
+                            if float(title[param['name']]) > param['values'][1]:
+                                issues_count += 1
+                                report_line += ": %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                                report_false += ": " +param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
 
-                    else:
-                        report_line += ": %s: " % cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                            else:
+                                report_line += ": %s: " % cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
 
 
 if __name__ == '__main__':
