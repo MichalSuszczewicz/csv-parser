@@ -42,7 +42,7 @@ all_asset = 0
 report_line = ''
 report_false = ''
 
-devices = ["android", "appletv"]
+devices = ["android", "appletv", "web", "firetv", "androidtv", "roku", "ios"]
 
 with open("movies.txt", "r") as f:
     titles = [line.strip() for line in f]
@@ -144,6 +144,4 @@ if __name__ == '__main__':
     f.write("Searched for %s assets" % len(assets) + " among %s assets" % all_asset + "\n\n")
     f.write("%s issues with assets metrics have been found" % issues_count + "\n\n")
     f.write(report_false + "\n")
-    # f.write("Assets and metrics that passed verification: \n\n")
-    # f.write(report_true.encode().decode('utf-8') + "\n")
     f.close()
