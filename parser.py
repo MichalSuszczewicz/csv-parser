@@ -1,10 +1,9 @@
 import csv
 import os
+import pprint
 from datetime import datetime
 
 # logging coloring
-formatting = "\033[95m\033[94m\033[92m\033[93m\033[91m\033[0m\033[1m\033[4m"
-
 
 class ColorLog:
     HEADER = '\033[95m'
@@ -108,7 +107,6 @@ def validate_metrics():
                         issues_count += 1
                         report_line += ": %s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
                         report_false += ": " + param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
-                        
                     else:
                         report_line += ": %s: " % cl.format('green',param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
                 if param['values'][0] == "<":
@@ -145,3 +143,4 @@ if __name__ == '__main__':
     f.write("%s issues with assets metrics have been found" % issues_count + "\n\n")
     f.write(report_false + "\n")
     f.close()
+    # pprint.pprint(assets)
