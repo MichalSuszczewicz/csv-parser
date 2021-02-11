@@ -91,39 +91,40 @@ def check_if_asset_is_accessible():
                                         item.update({param['name']:row[columns.index(param['name'])]})
               
                  
-def validate_metrics():
+def validate_metrics(out_filename):
     global issues_count
     global report_line, report_false
-
+    f = open(out_filename, 'w', encoding='utf-8')
+    
     for device in devices:
         report_line += cl.format('yellow', "\n\n <==================== %s ====================>" % device)
-        report_false += "\n\n <==================== %s ====================>" % device
+        f.write("\n\n <==================== %s ====================>" % device)
         for title in assets:
             if device == title["Device"]:
                 if title["Visibility"] == "Unknown":
                     report_line += "\n" + "{0:<30}".format(title["Title"]) + "%s" % cl.format('red', "Not Found")
-                    report_false += "\n" + "{0:<30}".format(title["Title"]) + "Not Found"
+                    f.write("\n" + "{0:<30}".format(title["Title"]) + "Not Found")
                     issues_count += 1
                 else:
                     report_line += "\n" + "{0:<30}".format(title["Title"])
-                    report_false += "\n" + "{0:<30}".format(title["Title"])
+                    f.write("\n" + "{0:<30}".format(title["Title"]))
                     for param in params:
                         if param['values'][0] == ">":
                             if float(title[param['name']]) < param['values'][1]:
                                 issues_count += 1
                                 report_line += "%s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
-                                report_false += param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1])
+                                f.write(param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])),param['values'][0], param['values'][1]))
                             else:
                                 report_line += "%s: " % cl.format('green',param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
                         if param['values'][0] == "<":
                             if float(title[param['name']]) > param['values'][1]:
                                 issues_count += 1
                                 report_line += "%s: " % cl.format('red', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
-                                report_false += param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
+                                f.write(param["name"] + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1]))
 
                             else:
                                 report_line += "%s: " % cl.format('green', param['name']) + " [ %s %s %s ]" % (str(float(title[param['name']])), param['values'][0], param['values'][1])
-
+    f.close()
 
 if __name__ == '__main__':
 
@@ -132,9 +133,10 @@ if __name__ == '__main__':
     check_if_asset_is_accessible()
 
     print("Searched for", len(assets), "assets among ", all_asset, "assets")
-    
-    validate_metrics()
+
     out_filename = "results_" + time_start + ".txt"
+    validate_metrics(out_filename = "results_" + time_start + ".txt")
+    
     
     if issues_count == 0:
         print(cl.format('green', "Everything fine, no issues found") + '\n')
@@ -143,10 +145,4 @@ if __name__ == '__main__':
     else:
         print(cl.format('red', "%s issues have been found, details in results file: ") % issues_count, out_filename + '\n')
     print(report_line)
-    
-    f = open(out_filename, 'w', encoding='utf-8')
-    f.write("Searched for %s assets" % len(assets) + " among %s assets" % all_asset + "\n\n")
-    f.write("%s issues with assets metrics have been found" % issues_count + "\n\n")
-    f.write(report_false + "\n")
-    f.close()
     # pprint.pprint(assets)
