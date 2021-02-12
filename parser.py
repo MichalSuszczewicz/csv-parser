@@ -127,36 +127,31 @@ def validate_metrics(report_file_name):
                         errors_line = ''
                         success_line = ''
                         for param in params:
+                            param_issue = False
                             if param['values'][0] == '>':
                                 if float(title[param['name']]) < param['values'][1]:
                                     issues_count += 1
                                     issue_detected = True
-                                    errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                        param['name'],
-                                        '{:.1f}'.format(float(title[param['name']])),
-                                        param['values'][0],
-                                        '{:.1f}'.format(param['values'][1])))
-                                else:
-                                    success_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                        param['name'],
-                                        '{:.1f}'.format(float(title[param['name']])),
-                                        param['values'][0],
-                                        '{:.1f}'.format(param['values'][1])))
+                                    param_issue = True
                             if param['values'][0] == '<':
                                 if float(title[param['name']]) > param['values'][1]:
                                     issues_count += 1
                                     issue_detected = True
-                                    errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                        param['name'],
-                                        '{:.1f}'.format(float(title[param['name']])),
-                                        param['values'][0],
-                                        '{:.1f}'.format(param['values'][1])))
-                                else:
-                                    success_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                        param['name'],
-                                        '{:.1f}'.format(float(title[param['name']])),
-                                        param['values'][0],
-                                        '{:.1f}'.format(param['values'][1])))
+                                    param_issue = True
+
+                            if param_issue:
+                                errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
+                                    param['name'],
+                                    '{:.1f}'.format(float(title[param['name']])),
+                                    param['values'][0],
+                                    '{:.1f}'.format(param['values'][1])))
+                            else:
+                                success_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
+                                    param['name'],
+                                    '{:.1f}'.format(float(title[param['name']])),
+                                    param['values'][0],
+                                    '{:.1f}'.format(param['values'][1])))
+
                         if issue_detected:
                             report_file.write('\n' + '{0:<30}'.format(title['Title']) + errors_line)
                             print('%s%s%s' % (
