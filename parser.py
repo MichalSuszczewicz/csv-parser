@@ -133,15 +133,15 @@ def validate_metrics(report_file_name):
                 report_file.write('\n <==================== %s ====================>' % device)
                 report_file.write('\n\nAssets for manual verification:\n')
                 h4('Assets for manual verification on %s device:' % device)
-                faillist = ul()
-                faillist['style'] = 'color: red'
+                fail_list = ul()
+                fail_list['style'] = 'color: red'
                 for title in assets:
                     if title['Device'] == device:
     
                         if title['Visibility'] == 'Unknown':
                             print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
                             report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
-                            faillist += li(title['Title'] + ' Not Found')
+                            fail_list += li(title['Title'] + ' Not Found')
                             issues_count += 1
                         else:
                             issue_detected = False
@@ -179,16 +179,16 @@ def validate_metrics(report_file_name):
                                     cl.format('red', '{0:<30}'.format(title['Title'])),
                                     cl.format('red', errors_line),
                                     cl.format('green', success_line)))
-                                faillist += li(title['Title'] + ' ' + errors_line)
+                                fail_list += li(title['Title'] + ' ' + errors_line)
                             else:
                                 passed_assets.append(title['Title'])
                 report_file.write('\n\nAssets passed auto verification:\n')
                 h4('Assets passed auto verification on %s device:' % device)
-                passlist = ul()
-                passlist['style'] = 'color: green'
+                pass_list = ul()
+                pass_list['style'] = 'color: green'
                 for item in passed_assets:
                     report_file.write('\n' + '{0:<30}'.format(item))
-                    passlist += li(item)
+                    pass_list += li(item)
     
         report_file.close()
         
