@@ -2,6 +2,7 @@ import csv
 import os
 import pprint
 from datetime import datetime
+import shutil
 
 # logging coloring
 
@@ -98,7 +99,7 @@ def prepare_assets_list():
                     else:
                         report_items += 1
                         for item in assets:
-                            if item['Title'] in row[0] and item['Device'] in file:
+                            if item['Title'] in row[0] and item['Device'] in file.lower():
                                 item['Visibility'] = 'Yes'
                                 for param in params:
                                     item[param['name']] = row[columns.index(param['name'])]
@@ -165,6 +166,16 @@ def validate_metrics(report_file_name):
                 report_file.write('\n' + '{0:<30}'.format(item))
 
     report_file.close()
+    
+    
+def archive_report():
+    
+    while True:
+        confirm = input('\n Do you want to archive this results? [y]Yes or [n]No: ')
+        if confirm.lower() in ('y', 'n', 'yes', 'no'):
+            return confirm.lower()
+        else:
+            print("\n Invalid Option. Please Enter a Valid Option.")
 
 
 if __name__ == '__main__':
@@ -175,8 +186,8 @@ if __name__ == '__main__':
     prepare_assets_list()
     print(cl.format('yellow', 'Checking for %s assets among %s report entries' % (len(titles), report_items)))
 
-    # out_filename = 'results_' + time_start + '.txt'
-    out_filename = 'results_tmp.txt'
+    out_filename = 'results_' + time_start + '.txt'
+    #out_filename = 'results_tmp.txt'
     validate_metrics(out_filename)
 
     if issues_count == 0:
@@ -188,3 +199,27 @@ if __name__ == '__main__':
     # pprint.pprint(assets)
     # pprint.pprint(devices)
 
+    confirm = archive_report()
+    
+    if confirm in ('y', 'yes'):
+        month = datetime.now().strftime('%Y-%m')
+        day = datetime.now().strftime('%d')
+        path = os.getcwd()+"/reports_%s/%s/" % (month, day)
+        
+        try:
+            os.makedirs(path)
+        except OSError:
+            if os.path.exists(path):
+                print("Directory already exists %s" % path)
+        else:
+            print("Successfully created the directory %s" % path)
+
+        for file in os.listdir('.'):
+            if '.csv' in file or out_filename == file:
+                shutil.move(file, path + file)
+            if '.txt' in file and out_filename not in file:
+                shutil.copy(file, path + file)
+        
+        print(cl.format("yellow", "\n CSV reports, Test results and Lists of assets were archived in the %s directory" % path))
+    else:
+        print("Results were not archived.")
