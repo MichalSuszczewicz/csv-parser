@@ -3,6 +3,8 @@ import os
 import pprint
 from datetime import datetime
 import shutil
+from dominate.tags import *
+import dominate
 
 # logging coloring
 
@@ -41,6 +43,7 @@ params = [
 issues_count = 0
 report_items = 0
 report_line = ''
+errors_line = ''
 
 devices = {
     'android': False,
@@ -106,66 +109,103 @@ def prepare_assets_list():
 
 
 def validate_metrics(report_file_name):
-    global issues_count
+    global issues_count, errors_line
 
     report_file = open(report_file_name, 'w', encoding='utf-8')
+    h = html()
+    with h.add(body()).add(div(id='content')):
+        h1('Test report')
+        style("""\
+                    body {
+                        background-color: #F9F8F1;
+                        color: #2C232A;
+                        font-family: sans-serif;
+                        font-size: 1.3em;
+                        margin: 1em 1em;
+                    }
+
+                """)
     
-    for device in devices:
-        if devices[device]:
-            passed_assets = []
-            print(cl.format('yellow', '\n <==================== %s ====================>' % device))
-            report_file.write('\n <==================== %s ====================>' % device)
-            report_file.write('\n\nAssets for manual verification:\n')
-            for title in assets:
-                if title['Device'] == device:
-
-                    if title['Visibility'] == 'Unknown':
-                        print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
-                        report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
-                        issues_count += 1
-                    else:
-                        issue_detected = False
-                        errors_line = ''
-                        success_line = ''
-                        for param in params:
-                            param_issue = False
-                            if param['values'][0] == '>':
-                                if float(title[param['name']]) < param['values'][1]:
-                                    issues_count += 1
-                                    issue_detected = True
-                                    param_issue = True
-                            if param['values'][0] == '<':
-                                if float(title[param['name']]) > param['values'][1]:
-                                    issues_count += 1
-                                    issue_detected = True
-                                    param_issue = True
-
-                            if param_issue:
-                                errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                    param['name'],
-                                    '{:.1f}'.format(float(title[param['name']])),
-                                    param['values'][0],
-                                    '{:.1f}'.format(param['values'][1])))
-                            else:
-                                success_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                    param['name'],
-                                    '{:.1f}'.format(float(title[param['name']])),
-                                    param['values'][0],
-                                    '{:.1f}'.format(param['values'][1])))
-
-                        if issue_detected:
-                            report_file.write('\n' + '{0:<30}'.format(title['Title']) + errors_line)
-                            print('%s%s%s' % (
-                                cl.format('red', '{0:<30}'.format(title['Title'])),
-                                cl.format('red', errors_line),
-                                cl.format('green', success_line)))
+        for device in devices:
+            if devices[device]:
+                passed_assets = []
+                print(cl.format('yellow', '\n <==================== %s ====================>' % device))
+                report_file.write('\n <==================== %s ====================>' % device)
+                report_file.write('\n\nAssets for manual verification:\n')
+                h4('Assets for manual verification on %s device:' % device)
+                faillist = ul()
+                faillist['style'] = 'color: red'
+                for title in assets:
+                    if title['Device'] == device:
+    
+                        if title['Visibility'] == 'Unknown':
+                            print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
+                            report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
+                            faillist += li(title['Title'] + ' Not Found')
+                            issues_count += 1
                         else:
-                            passed_assets.append(title['Title'])
-            report_file.write('\n\nAssets passed auto verification:\n')
-            for item in passed_assets:
-                report_file.write('\n' + '{0:<30}'.format(item))
+                            issue_detected = False
+                            errors_line = ''
+                            success_line = ''
+                            for param in params:
+                                param_issue = False
+                                if param['values'][0] == '>':
+                                    if float(title[param['name']]) < param['values'][1]:
+                                        issues_count += 1
+                                        issue_detected = True
+                                        param_issue = True
+                                if param['values'][0] == '<':
+                                    if float(title[param['name']]) > param['values'][1]:
+                                        issues_count += 1
+                                        issue_detected = True
+                                        param_issue = True
+    
+                                if param_issue:
+                                    errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
+                                        param['name'],
+                                        '{:.1f}'.format(float(title[param['name']])),
+                                        param['values'][0],
+                                        '{:.1f}'.format(param['values'][1])))
+                                else:
+                                    success_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
+                                        param['name'],
+                                        '{:.1f}'.format(float(title[param['name']])),
+                                        param['values'][0],
+                                        '{:.1f}'.format(param['values'][1])))
+    
+                            if issue_detected:
+                                report_file.write('\n' + '{0:<30}'.format(title['Title']) + errors_line)
+                                print('%s%s%s' % (
+                                    cl.format('red', '{0:<30}'.format(title['Title'])),
+                                    cl.format('red', errors_line),
+                                    cl.format('green', success_line)))
+                                faillist += li(title['Title'] + ' ' + errors_line)
+                            else:
+                                passed_assets.append(title['Title'])
+                report_file.write('\n\nAssets passed auto verification:\n')
+                h4('Assets passed auto verification on %s device:' % device)
+                passlist = ul()
+                passlist['style'] = 'color: green'
+                for item in passed_assets:
+                    report_file.write('\n' + '{0:<30}'.format(item))
+                    passlist += li(item)
+    
+        report_file.close()
+        
+    html_file = open('results.html', 'w')
+    html_file.write(str(h))
+    html_file.close()
 
-    report_file.close()
+    import webbrowser
+    new = 2  # open in a new tab, if possible
+
+    # open a public URL, in this case, the webbrowser docs
+    # url = "http://docs.python.org/library/webbrowser.html"
+    # webbrowser.open(url,new=new)
+
+    # open an HTML file on my own (Windows) computer
+    url = "file://" + os.getcwd() + "/results.html"
+    webbrowser.open(url, new=new)
     
     
 def archive_report():
@@ -186,8 +226,8 @@ if __name__ == '__main__':
     prepare_assets_list()
     print(cl.format('yellow', 'Checking for %s assets among %s report entries' % (len(titles), report_items)))
 
-    out_filename = 'results_' + time_start + '.txt'
-    #out_filename = 'results_tmp.txt'
+    #out_filename = 'results_' + time_start + '.txt'
+    out_filename = 'results_tmp.txt'
     validate_metrics(out_filename)
 
     if issues_count == 0:
@@ -198,7 +238,6 @@ if __name__ == '__main__':
 
     # pprint.pprint(assets)
     # pprint.pprint(devices)
-
     confirm = archive_report()
     
     if confirm in ('y', 'yes'):
@@ -219,6 +258,8 @@ if __name__ == '__main__':
                 shutil.move(file, path + file)
             if '.txt' in file and out_filename not in file:
                 shutil.copy(file, path + file)
+            if '.html' in file and out_filename not in file:
+                    shutil.copy(file, path + file)
         
         print(cl.format("yellow", "\n CSV reports, Test results and Lists of assets were archived in the %s directory" % path))
     else:
