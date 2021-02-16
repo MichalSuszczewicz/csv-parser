@@ -141,7 +141,7 @@ def validate_metrics(report_file_name):
                         if title['Visibility'] == 'Unknown':
                             print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
                             report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
-                            fail_list += li(title['Title'] + ' Not Found')
+                            fail_list += li(title['Title'] + ': Not Found')
                             issues_count += 1
                         else:
                             issue_detected = False
