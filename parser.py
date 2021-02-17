@@ -200,21 +200,21 @@ def validate_metrics(report_file_name):
                                             errors_line, success_line))
                         else:
                             passed_assets.append(title['Title'])
-            html_file.write("</ul>")
+            html_file.write('</ul>')
             report_file.write('\n\nAssets passed auto verification:\n')
             html_file.write('<h4>Assets passed auto verification on %s device:</h4>' % device)
             html_file.write('<ul>')
             for item in passed_assets:
                 report_file.write('\n' + '{0:<30}'.format(item))
                 html_file.write('<li class="pass">%s</li>' % item)
-            html_file.write("</ul>")
+            html_file.write('</ul>')
 
     report_file.close()
     html_file.close()
 
     import webbrowser
     new = 2  # open in a new tab, if possible
-    url = "file://" + os.getcwd() + "/results.html"
+    url = 'file://' + os.getcwd() + '/results.html'
     webbrowser.open(url, new=new)
     
     
