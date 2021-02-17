@@ -4,7 +4,6 @@ import pprint
 from datetime import datetime
 import shutil
 
-# logging coloring
 
 class ColorLog:
     HEADER = '\033[95m'
@@ -54,8 +53,12 @@ devices = {
     'ios': False
 }
 
-with open('movies.txt', 'r') as f:
-    titles = [line.strip() for line in f]
+try:
+    with open('movies.txt', 'r') as f:
+        titles = [line.strip() for line in f]
+except FileNotFoundError:
+    print(cl.format('red', 'File movies.txt not found, exiting'))
+    exit(1)
 
 
 def check_devices_reports():
@@ -117,8 +120,8 @@ def validate_metrics(report_file_name):
     for device in devices:
         if devices[device]:
             passed_assets = []
-            print(cl.format('yellow', '\n <==================== %s ====================>' % device))
-            report_file.write('\n <==================== %s ====================>' % device)
+            print(cl.format('yellow', '\n<==================== %s ====================>' % device))
+            report_file.write('\n<==================== %s ====================>' % device)
             report_file.write('\n\nAssets for manual verification:\n')
             for title in assets:
                 if title['Device'] == device:
@@ -175,7 +178,7 @@ def validate_metrics(report_file_name):
 def archive_report():
     
     while True:
-        confirm = input('\n Do you want to archive this results? [y]Yes or [n]No: ')
+        confirm = input('\nDo you want to archive this results? [y]Yes or [n]No: ')
         if confirm.lower() in ('y', 'yes'):
             month = datetime.now().strftime('%Y-%m')
             day = datetime.now().strftime('%d')
@@ -201,7 +204,7 @@ def archive_report():
             print(cl.format("blue", "Results were not archived."))
             return False
         else:
-            print("\n Invalid Option. Please Enter a Valid Option.")
+            print("\nInvalid Option. Please Enter a Valid Option.")
 
 
 if __name__ == '__main__':
@@ -212,8 +215,8 @@ if __name__ == '__main__':
     prepare_assets_list()
     print(cl.format('yellow', 'Checking for %s assets among %s report entries' % (len(titles), report_items)))
 
-    #out_filename = 'results_' + time_start + '.txt'
-    out_filename = 'results_tmp.txt'
+    out_filename = 'results_' + time_start + '.txt'
+    #out_filename = 'results_tmp.txt'
     validate_metrics(out_filename)
 
     if issues_count == 0:
