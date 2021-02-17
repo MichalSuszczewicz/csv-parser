@@ -68,7 +68,11 @@ def check_devices_reports():
     for device in devices:
         if devices[device]:
             detected_devices += ' %s' % device
-    print(cl.format('green', '\ndetected devices are:%s' % detected_devices))
+    if detected_devices:
+        print(cl.format('green', '\ndetected devices are:%s' % detected_devices))
+    else:
+        print(cl.format('red', '\n No device or CSV report was detected'))
+        quit()
 
 
 def create_dict():
