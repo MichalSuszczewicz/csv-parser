@@ -25,6 +25,8 @@ class ColorLog:
             output = self.FAIL + text + self.ENDC
         elif coloring == 'warning' or coloring == 'yellow':
             output = self.WARNING + text + self.ENDC
+        elif coloring == 'span' or coloring == 'blue':
+            output = self.OKBLUE + text + self.ENDC
 
         return output
 
@@ -172,8 +174,30 @@ def archive_report():
     
     while True:
         confirm = input('\n Do you want to archive this results? [y]Yes or [n]No: ')
-        if confirm.lower() in ('y', 'n', 'yes', 'no'):
-            return confirm.lower()
+        if confirm.lower() in ('y', 'yes'):
+            month = datetime.now().strftime('%Y-%m')
+            day = datetime.now().strftime('%d')
+            path = os.getcwd() + "/reports/report_%s/%s/" % (month, day)
+        
+            try:
+                os.makedirs(path)
+            except OSError:
+                if os.path.exists(path):
+                    print("Archive directory already exists %s" % path)
+                else:
+                    print("Successfully created the archive directory %s" % path)
+        
+            for file in os.listdir('.'):
+                if '.csv' in file or out_filename == file:
+                    shutil.move(file, path + file)
+                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived"))
+                if '.txt' in file and out_filename not in file:
+                    shutil.copy(file, path + file)
+                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived as a copy"))
+            return True
+        elif confirm.lower() in ('n', 'no'):
+            print(cl.format("blue", "Results were not archived."))
+            return False
         else:
             print("\n Invalid Option. Please Enter a Valid Option.")
 
@@ -186,8 +210,8 @@ if __name__ == '__main__':
     prepare_assets_list()
     print(cl.format('yellow', 'Checking for %s assets among %s report entries' % (len(titles), report_items)))
 
-    out_filename = 'results_' + time_start + '.txt'
-    #out_filename = 'results_tmp.txt'
+    #out_filename = 'results_' + time_start + '.txt'
+    out_filename = 'results_tmp.txt'
     validate_metrics(out_filename)
 
     if issues_count == 0:
@@ -195,31 +219,7 @@ if __name__ == '__main__':
     else:
         print(cl.format('red', '%s issue(s) have been found, details in results file: ')
               % issues_count, out_filename)
-
+        
+    archive_report()
     # pprint.pprint(assets)
     # pprint.pprint(devices)
-
-    confirm = archive_report()
-    
-    if confirm in ('y', 'yes'):
-        month = datetime.now().strftime('%Y-%m')
-        day = datetime.now().strftime('%d')
-        path = os.getcwd()+"/reports_%s/%s/" % (month, day)
-        
-        try:
-            os.makedirs(path)
-        except OSError:
-            if os.path.exists(path):
-                print("Directory already exists %s" % path)
-        else:
-            print("Successfully created the directory %s" % path)
-
-        for file in os.listdir('.'):
-            if '.csv' in file or out_filename == file:
-                shutil.move(file, path + file)
-            if '.txt' in file and out_filename not in file:
-                shutil.copy(file, path + file)
-        
-        print(cl.format("yellow", "\n CSV reports, Test results and Lists of assets were archived in the %s directory" % path))
-    else:
-        print("Results were not archived.")
