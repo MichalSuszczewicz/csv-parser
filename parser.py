@@ -71,7 +71,7 @@ def check_devices_reports():
     if detected_devices:
         print(cl.format('green', '\ndetected devices are:%s' % detected_devices))
     else:
-        print(cl.format('red', '\n No device or CSV report was detected'))
+        print(cl.format('red', '\n No device or CSV report was detected in the script directory'))
         quit()
 
 
