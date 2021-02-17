@@ -110,90 +110,103 @@ def prepare_assets_list():
 
 def validate_metrics(report_file_name):
     global issues_count, errors_line
-
+    
     report_file = open(report_file_name, 'w', encoding='utf-8')
-    h = html()
-    with h.add(body()).add(div(id='content')):
-        h1('Test report')
-        style("""\
-                    body {
+
+    html_file = open('results.html', 'w')
+    html_file.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+            "http://www.w3.org/TR/html4/loose.dtd">
+    <html>
+    <head>
+        <title>Test Report</title>
+        <style>
+        
+        body {
                         background-color: #F9F8F1;
                         color: #2C232A;
                         font-family: sans-serif;
-                        font-size: 1.3em;
+                        font-size: 1em;
                         margin: 1em 1em;
                     }
+                    .fail{
+                        color: red;
+                    }
+                    .pass{
+                        color: green;
+                    }
+        </style>
+    </head>
+    <body>
+    """)
+    html_file.write('<h1>Test report</h1>')
 
-                """)
-    
-        for device in devices:
-            if devices[device]:
-                passed_assets = []
-                print(cl.format('yellow', '\n <==================== %s ====================>' % device))
-                report_file.write('\n <==================== %s ====================>' % device)
-                report_file.write('\n\nAssets for manual verification:\n')
-                h4('Assets for manual verification on %s device:' % device)
-                fail_list = ul()
-                fail_list['style'] = 'color: red'
-                for title in assets:
-                    if title['Device'] == device:
-    
-                        if title['Visibility'] == 'Unknown':
-                            print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
-                            report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
-                            fail_list += li(title['Title'] + ': Not Found')
-                            issues_count += 1
-                        else:
-                            issue_detected = False
-                            errors_line = ''
-                            success_line = ''
-                            for param in params:
-                                param_issue = False
-                                if param['values'][0] == '>':
-                                    if float(title[param['name']]) < param['values'][1]:
-                                        issues_count += 1
-                                        issue_detected = True
-                                        param_issue = True
-                                if param['values'][0] == '<':
-                                    if float(title[param['name']]) > param['values'][1]:
-                                        issues_count += 1
-                                        issue_detected = True
-                                        param_issue = True
-    
-                                if param_issue:
-                                    errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                        param['name'],
-                                        '{:.1f}'.format(float(title[param['name']])),
-                                        param['values'][0],
-                                        '{:.1f}'.format(param['values'][1])))
-                                else:
-                                    success_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
-                                        param['name'],
-                                        '{:.1f}'.format(float(title[param['name']])),
-                                        param['values'][0],
-                                        '{:.1f}'.format(param['values'][1])))
-    
-                            if issue_detected:
-                                report_file.write('\n' + '{0:<30}'.format(title['Title']) + errors_line)
-                                print('%s%s%s' % (
-                                    cl.format('red', '{0:<30}'.format(title['Title'])),
-                                    cl.format('red', errors_line),
-                                    cl.format('green', success_line)))
-                                fail_list += li(title['Title'] + ' ' + errors_line)
+    for device in devices:
+        if devices[device]:
+            passed_assets = []
+            print(cl.format('yellow', '\n <==================== %s ====================>' % device))
+            report_file.write('\n <==================== %s ====================>' % device)
+            report_file.write('\n\nAssets for manual verification:\n')
+            html_file.write('<h4>Assets for manual verification on %s device:</h4>' % device)
+            html_file.write('<ul>')
+            for title in assets:
+                if title['Device'] == device:
+                
+                    if title['Visibility'] == 'Unknown':
+                        print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
+                        report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
+                        html_file.write("<li>" + title['Title'] + ':<span class="fail"> Not Found</span></li>')
+                        issues_count += 1
+                    else:
+                        issue_detected = False
+                        errors_line = ''
+                        success_line = ''
+                        for param in params:
+                            param_issue = False
+                            if param['values'][0] == '>':
+                                if float(title[param['name']]) < param['values'][1]:
+                                    issues_count += 1
+                                    issue_detected = True
+                                    param_issue = True
+                            if param['values'][0] == '<':
+                                if float(title[param['name']]) > param['values'][1]:
+                                    issues_count += 1
+                                    issue_detected = True
+                                    param_issue = True
+                        
+                            if param_issue:
+                                errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
+                                    param['name'],
+                                    '{:.1f}'.format(float(title[param['name']])),
+                                    param['values'][0],
+                                    '{:.1f}'.format(param['values'][1])))
                             else:
-                                passed_assets.append(title['Title'])
-                report_file.write('\n\nAssets passed auto verification:\n')
-                h4('Assets passed auto verification on %s device:' % device)
-                pass_list = ul()
-                pass_list['style'] = 'color: green'
-                for item in passed_assets:
-                    report_file.write('\n' + '{0:<30}'.format(item))
-                    pass_list += li(item)
-    
-        report_file.close()
-        
-    html_file = open('results.html', 'w')
-    html_file.write(str(h))
+                                success_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
+                                    param['name'],
+                                    '{:.1f}'.format(float(title[param['name']])),
+                                    param['values'][0],
+                                    '{:.1f}'.format(param['values'][1])))
+                    
+                        if issue_detected:
+                            report_file.write('\n' + '{0:<30}'.format(title['Title']) + errors_line)
+                            print('%s%s%s' % (
+                                cl.format('red', '{0:<30}'.format(title['Title'])),
+                                cl.format('red', errors_line),
+                                cl.format('green', success_line)))
+                            html_file.write('<li>' + title[
+                                'Title'] + ':<span class="fail"> %s </span> <span class="pass"> %s </span></li>' % (
+                                            errors_line, success_line))
+                        else:
+                            passed_assets.append(title['Title'])
+            html_file.write("</ul>")
+            report_file.write('\n\nAssets passed auto verification:\n')
+            html_file.write('<h4>Assets passed auto verification on %s device:</h4>' % device)
+            html_file.write('<ul>')
+            for item in passed_assets:
+                report_file.write('\n' + '{0:<30}'.format(item))
+                html_file.write('<li class="pass">' + item + '</li>')
+            html_file.write("</ul>")
+
+    report_file.close()
     html_file.close()
 
     import webbrowser
