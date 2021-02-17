@@ -63,15 +63,13 @@ def check_devices_reports():
     for file in os.listdir('.'):
         if '.csv' in file:
             for k in devices:
-                if k in file:
+                if k in file and not devices[k]:
                     devices[k] = True
-    for device in devices:
-        if devices[device]:
-            detected_devices += ' %s' % device
+                    detected_devices += ' %s' % k
     if detected_devices:
-        print(cl.format('green', '\ndetected devices are:%s' % detected_devices))
+        print(cl.format('green', '\nDetected devices are:%s' % detected_devices))
     else:
-        print(cl.format('red', '\n No device or CSV report was detected in the script directory'))
+        print(cl.format('red', '\nNo device or CSV report was detected in the script directory'))
         quit()
 
 
