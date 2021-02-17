@@ -27,6 +27,8 @@ class ColorLog:
             output = self.FAIL + text + self.ENDC
         elif coloring == 'warning' or coloring == 'yellow':
             output = self.WARNING + text + self.ENDC
+        elif coloring == 'span' or coloring == 'blue':
+            output = self.OKBLUE + text + self.ENDC
 
         return output
 
@@ -43,7 +45,6 @@ params = [
 issues_count = 0
 report_items = 0
 report_line = ''
-errors_line = ''
 
 devices = {
     'android': False,
@@ -69,7 +70,11 @@ def check_devices_reports():
     for device in devices:
         if devices[device]:
             detected_devices += ' %s' % device
-    print(cl.format('green', '\ndetected devices are:%s' % detected_devices))
+    if detected_devices:
+        print(cl.format('green', '\ndetected devices are:%s' % detected_devices))
+    else:
+        print(cl.format('red', '\n No device or CSV report was detected in the script directory'))
+        quit()
 
 
 def create_dict():
@@ -109,8 +114,8 @@ def prepare_assets_list():
 
 
 def validate_metrics(report_file_name):
-    global issues_count, errors_line
-    
+    global issues_count
+
     report_file = open(report_file_name, 'w', encoding='utf-8')
 
     html_file = open('results.html', 'w')
@@ -146,15 +151,12 @@ def validate_metrics(report_file_name):
             print(cl.format('yellow', '\n <==================== %s ====================>' % device))
             report_file.write('\n <==================== %s ====================>' % device)
             report_file.write('\n\nAssets for manual verification:\n')
-            html_file.write('<h4>Assets for manual verification on %s device:</h4>' % device)
-            html_file.write('<ul>')
             for title in assets:
                 if title['Device'] == device:
-                
+
                     if title['Visibility'] == 'Unknown':
                         print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
                         report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
-                        html_file.write('<li>%s:<span class="fail"> Not Found</span></li>' % title['Title'])
                         issues_count += 1
                     else:
                         issue_detected = False
@@ -172,7 +174,7 @@ def validate_metrics(report_file_name):
                                     issues_count += 1
                                     issue_detected = True
                                     param_issue = True
-                        
+
                             if param_issue:
                                 errors_line += '{0:<30}'.format('%s: [ %s %s %s ]' % (
                                     param['name'],
@@ -185,7 +187,7 @@ def validate_metrics(report_file_name):
                                     '{:.1f}'.format(float(title[param['name']])),
                                     param['values'][0],
                                     '{:.1f}'.format(param['values'][1])))
-                    
+
                         if issue_detected:
                             report_file.write('\n' + '{0:<30}'.format(title['Title']) + errors_line)
                             print('%s%s%s' % (
@@ -224,8 +226,30 @@ def archive_report():
     
     while True:
         confirm = input('\n Do you want to archive this results? [y]Yes or [n]No: ')
-        if confirm.lower() in ('y', 'n', 'yes', 'no'):
-            return confirm.lower()
+        if confirm.lower() in ('y', 'yes'):
+            month = datetime.now().strftime('%Y-%m')
+            day = datetime.now().strftime('%d')
+            path = os.getcwd() + "/reports/report_%s/%s/" % (month, day)
+        
+            try:
+                os.makedirs(path)
+            except OSError:
+                if os.path.exists(path):
+                    print("Archive directory already exists %s" % path)
+                else:
+                    print("Successfully created the archive directory %s" % path)
+        
+            for file in os.listdir('.'):
+                if '.csv' in file or out_filename == file:
+                    shutil.move(file, path + file)
+                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived"))
+                if '.txt' in file and out_filename not in file:
+                    shutil.copy(file, path + file)
+                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived as a copy"))
+            return True
+        elif confirm.lower() in ('n', 'no'):
+            print(cl.format("blue", "Results were not archived."))
+            return False
         else:
             print("\n Invalid Option. Please Enter a Valid Option.")
 
@@ -247,32 +271,7 @@ if __name__ == '__main__':
     else:
         print(cl.format('red', '%s issue(s) have been found, details in results file: ')
               % issues_count, out_filename)
-
+        
+    archive_report()
     # pprint.pprint(assets)
     # pprint.pprint(devices)
-    confirm = archive_report()
-    
-    if confirm in ('y', 'yes'):
-        month = datetime.now().strftime('%Y-%m')
-        day = datetime.now().strftime('%d')
-        path = os.getcwd()+"/reports_%s/%s/" % (month, day)
-        
-        try:
-            os.makedirs(path)
-        except OSError:
-            if os.path.exists(path):
-                print("Directory already exists %s" % path)
-        else:
-            print("Successfully created the directory %s" % path)
-
-        for file in os.listdir('.'):
-            if '.csv' in file or out_filename == file:
-                shutil.move(file, path + file)
-            if '.txt' in file and out_filename not in file:
-                shutil.copy(file, path + file)
-            if '.html' in file and out_filename not in file:
-                    shutil.copy(file, path + file)
-        
-        print(cl.format("yellow", "\n CSV reports, Test results and Lists of assets were archived in the %s directory" % path))
-    else:
-        print("Results were not archived.")
