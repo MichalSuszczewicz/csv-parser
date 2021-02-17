@@ -6,7 +6,6 @@ import shutil
 from dominate.tags import *
 import dominate
 
-# logging coloring
 
 class ColorLog:
     HEADER = '\033[95m'
@@ -56,8 +55,12 @@ devices = {
     'ios': False
 }
 
-with open('movies.txt', 'r') as f:
-    titles = [line.strip() for line in f]
+try:
+    with open('movies.txt', 'r') as f:
+        titles = [line.strip() for line in f]
+except FileNotFoundError:
+    print(cl.format('red', 'File movies.txt not found, exiting'))
+    exit(1)
 
 
 def check_devices_reports():
@@ -65,15 +68,13 @@ def check_devices_reports():
     for file in os.listdir('.'):
         if '.csv' in file:
             for k in devices:
-                if k in file:
+                if k in file and not devices[k]:
                     devices[k] = True
-    for device in devices:
-        if devices[device]:
-            detected_devices += ' %s' % device
+                    detected_devices += ' %s' % k
     if detected_devices:
-        print(cl.format('green', '\ndetected devices are:%s' % detected_devices))
+        print(cl.format('green', '\nDetected devices are:%s' % detected_devices))
     else:
-        print(cl.format('red', '\n No device or CSV report was detected in the script directory'))
+        print(cl.format('red', '\nNo device or CSV report was detected in the script directory'))
         quit()
 
 
@@ -148,8 +149,8 @@ def validate_metrics(report_file_name):
     for device in devices:
         if devices[device]:
             passed_assets = []
-            print(cl.format('yellow', '\n <==================== %s ====================>' % device))
-            report_file.write('\n <==================== %s ====================>' % device)
+            print(cl.format('yellow', '\n<==================== %s ====================>' % device))
+            report_file.write('\n<==================== %s ====================>' % device)
             report_file.write('\n\nAssets for manual verification:\n')
             html_file.write('<h4>Assets for manual verification on %s device:</h4>' % device)
             html_file.write('<ul>')
@@ -228,33 +229,33 @@ def validate_metrics(report_file_name):
 def archive_report():
     
     while True:
-        confirm = input('\n Do you want to archive this results? [y]Yes or [n]No: ')
+        confirm = input('\nDo you want to archive this results? [y]Yes or [n]No: ')
         if confirm.lower() in ('y', 'yes'):
             month = datetime.now().strftime('%Y-%m')
             day = datetime.now().strftime('%d')
-            path = os.getcwd() + "/reports/report_%s/%s/" % (month, day)
+            path = os.getcwd() + '/reports/report_%s/%s/' % (month, day)
         
             try:
                 os.makedirs(path)
             except OSError:
                 if os.path.exists(path):
-                    print("Archive directory already exists %s" % path)
+                    print('Archive directory already exists %s' % path)
                 else:
-                    print("Successfully created the archive directory %s" % path)
+                    print('Successfully created the archive directory %s' % path)
         
             for file in os.listdir('.'):
                 if '.csv' in file or out_filename == file or '.html' in file:
                     shutil.move(file, path + file)
-                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived"))
+                    print(cl.format('blue', '{0:<100}'.format(file)), cl.format('yellow', 'was archived'))
                 if '.txt' in file and out_filename not in file:
                     shutil.copy(file, path + file)
-                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived as a copy"))
+                    print(cl.format('blue', '{0:<100}'.format(file)), cl.format('yellow', 'was archived as a copy'))
             return True
         elif confirm.lower() in ('n', 'no'):
-            print(cl.format("blue", "Results were not archived."))
+            print(cl.format('blue', 'Results were not archived.'))
             return False
         else:
-            print("\n Invalid Option. Please Enter a Valid Option.")
+            print('\nInvalid Option. Please Enter a Valid Option.')
 
 
 if __name__ == '__main__':
@@ -265,8 +266,8 @@ if __name__ == '__main__':
     prepare_assets_list()
     print(cl.format('yellow', 'Checking for %s assets among %s report entries' % (len(titles), report_items)))
 
-    #out_filename = 'results_' + time_start + '.txt'
-    out_filename = 'results_tmp.txt'
+    out_filename = 'results_' + time_start + '.txt'
+    #out_filename = 'results_tmp.txt'
     validate_metrics(out_filename)
 
     if issues_count == 0:
