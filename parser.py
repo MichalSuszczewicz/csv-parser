@@ -182,29 +182,29 @@ def archive_report():
         if confirm.lower() in ('y', 'yes'):
             month = datetime.now().strftime('%Y-%m')
             day = datetime.now().strftime('%d')
-            path = os.getcwd() + "/reports/report_%s/%s/" % (month, day)
+            path = os.getcwd() + '/reports/report_%s/%s/' % (month, day)
         
             try:
                 os.makedirs(path)
             except OSError:
                 if os.path.exists(path):
-                    print("Archive directory already exists %s" % path)
+                    print('Archive directory already exists %s' % path)
                 else:
-                    print("Successfully created the archive directory %s" % path)
+                    print('Successfully created the archive directory %s' % path)
         
             for file in os.listdir('.'):
                 if '.csv' in file or out_filename == file:
                     shutil.move(file, path + file)
-                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived"))
+                    print(cl.format('blue', '{0:<100}'.format(file)), cl.format('yellow', 'was archived'))
                 if '.txt' in file and out_filename not in file:
                     shutil.copy(file, path + file)
-                    print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived as a copy"))
+                    print(cl.format('blue', '{0:<100}'.format(file)), cl.format('yellow', 'was archived as a copy'))
             return True
         elif confirm.lower() in ('n', 'no'):
-            print(cl.format("blue", "Results were not archived."))
+            print(cl.format('blue', 'Results were not archived.'))
             return False
         else:
-            print("\nInvalid Option. Please Enter a Valid Option.")
+            print('\nInvalid Option. Please Enter a Valid Option.')
 
 
 if __name__ == '__main__':
