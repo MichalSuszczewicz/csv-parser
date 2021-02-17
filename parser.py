@@ -154,7 +154,7 @@ def validate_metrics(report_file_name):
                     if title['Visibility'] == 'Unknown':
                         print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
                         report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
-                        html_file.write("<li>" + title['Title'] + ':<span class="fail"> Not Found</span></li>')
+                        html_file.write('<li>%s:<span class="fail"> Not Found</span></li>' % title['Title'])
                         issues_count += 1
                     else:
                         issue_detected = False
@@ -192,8 +192,7 @@ def validate_metrics(report_file_name):
                                 cl.format('red', '{0:<30}'.format(title['Title'])),
                                 cl.format('red', errors_line),
                                 cl.format('green', success_line)))
-                            html_file.write('<li>' + title[
-                                'Title'] + ':<span class="fail"> %s </span> <span class="pass"> %s </span></li>' % (
+                            html_file.write('<li>%s:<span class="fail"> %s </span> <span class="pass"> %s </span></li>' % (title['Title'],
                                             errors_line, success_line))
                         else:
                             passed_assets.append(title['Title'])
@@ -203,7 +202,7 @@ def validate_metrics(report_file_name):
             html_file.write('<ul>')
             for item in passed_assets:
                 report_file.write('\n' + '{0:<30}'.format(item))
-                html_file.write('<li class="pass">' + item + '</li>')
+                html_file.write('<li class="pass">%s</li>' % item)
             html_file.write("</ul>")
 
     report_file.close()
