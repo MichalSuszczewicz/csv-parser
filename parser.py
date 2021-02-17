@@ -3,8 +3,6 @@ import os
 import pprint
 from datetime import datetime
 import shutil
-from dominate.tags import *
-import dominate
 
 
 class ColorLog:
