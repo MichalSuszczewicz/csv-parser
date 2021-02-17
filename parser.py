@@ -151,12 +151,15 @@ def validate_metrics(report_file_name):
             print(cl.format('yellow', '\n <==================== %s ====================>' % device))
             report_file.write('\n <==================== %s ====================>' % device)
             report_file.write('\n\nAssets for manual verification:\n')
+            html_file.write('<h4>Assets for manual verification on %s device:</h4>' % device)
+            html_file.write('<ul>')
             for title in assets:
                 if title['Device'] == device:
 
                     if title['Visibility'] == 'Unknown':
                         print(cl.format('red', '{0:<30}'.format(title['Title']) + '%s' % 'Not Found'))
                         report_file.write('\n' + '{0:<30}'.format(title['Title']) + 'Not Found')
+                        html_file.write('<li>%s:<span class="fail"> Not Found</span></li>' % title['Title'])
                         issues_count += 1
                     else:
                         issue_detected = False
@@ -240,7 +243,7 @@ def archive_report():
                     print("Successfully created the archive directory %s" % path)
         
             for file in os.listdir('.'):
-                if '.csv' in file or out_filename == file:
+                if '.csv' in file or out_filename == file or '.html' in file:
                     shutil.move(file, path + file)
                     print(cl.format("blue", '{0:<100}'.format(file)), cl.format("yellow", "was archived"))
                 if '.txt' in file and out_filename not in file:
