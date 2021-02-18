@@ -141,9 +141,6 @@ def initiate_html_report(environment, time, html_report_name):
                        button{
                             cursor: pointer;
                        }
-                       td{
-                            width: 33.3%;
-                       }
            </style>
            <script>
                function showAssets() {
@@ -183,7 +180,7 @@ def initiate_html_report(environment, time, html_report_name):
     html_file.write('</ol>')
     html_file.write('<table id="metrics"><tr>')
     for param in params:
-        html_file.write('<td>%s</td><td style="text-align:center">%s</td><td>%s</td></tr>' % (param['name'], param['values'][0], param['values'][1]))
+        html_file.write('<td>%s</td><td>%s</td><td>%s</td></tr>' % (param['name'], param['values'][0], param['values'][1]))
     html_file.write('</table>')
     html_file.close()
     
