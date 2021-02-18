@@ -135,16 +135,28 @@ def initiate_html_report(environment, time, html_report_name):
                        .pass{
                            color: green;
                        }
-                       #assets{
+                       #assets, #metrics{
                             display: none;
                        }
                        button{
                             cursor: pointer;
                        }
+                       td{
+                            width: 33.3%;
+                       }
            </style>
            <script>
                function showAssets() {
                     var x = document.getElementById("assets");
+                    if (x.style.display == "block") {
+                         x.style.display = "none";
+                     }
+                     else {
+                         x.style.display = "block";
+                     }
+                }
+                function showMetrics() {
+                    var x = document.getElementById("metrics");
                     if (x.style.display == "block") {
                          x.style.display = "none";
                      }
@@ -164,10 +176,15 @@ def initiate_html_report(environment, time, html_report_name):
             for k in devices:
                 if k in file:
                     html_file.write('<li>%s</li>' % file)
-    html_file.write('</ul><button onclick="showAssets()">Searched assets</button><ol id="assets">')
+    html_file.write('</ul><button onclick="showMetrics()">Verified Metrics</button>')
+    html_file.write('<button onclick="showAssets()">Searched assets</button><ol id="assets">')
     for item in titles:
         html_file.write('<li>%s</li>' % item)
     html_file.write('</ol>')
+    html_file.write('<table id="metrics"><tr>')
+    for param in params:
+        html_file.write('<td>%s</td><td style="text-align:center">%s</td><td>%s</td></tr>' % (param['name'], param['values'][0], param['values'][1]))
+    html_file.write('</table>')
     html_file.close()
     
     
