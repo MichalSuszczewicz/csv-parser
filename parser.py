@@ -140,6 +140,7 @@ def initiate_html_report(environment, time, html_report_name):
                        }
                        button{
                             cursor: pointer;
+                            margin: 5px;
                        }
            </style>
            <script>
