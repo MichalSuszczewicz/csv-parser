@@ -54,10 +54,10 @@ devices = {
 }
 
 try:
-    with open('movies.txt', 'r') as f:
+    with open('assets.txt', 'r') as f:
         titles = [line.strip() for line in f]
 except FileNotFoundError:
-    print(cl.format('red', 'File movies.txt not found, exiting'))
+    print(cl.format('red', 'File assets.txt not found, exiting'))
     exit(1)
 
 
