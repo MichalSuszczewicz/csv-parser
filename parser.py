@@ -97,20 +97,20 @@ def prepare_assets_list():
     for file in os.listdir('.'):
         if '.csv' in file:
             print(cl.format('green', 'csv file has been found: %s' % file))
-            with open(file) as csv_file:
-                reader = csv.reader(csv_file, delimiter=',')
-                line_count = 0
-                for row in reader:
-                    if line_count == 0:
-                        columns = row
-                        line_count += 1
-                    else:
-                        report_items += 1
-                        for item in assets:
-                            if item['Title'] in row[0] and item['Device'] in file.lower():
-                                item['Visibility'] = 'Yes'
-                                for param in params:
-                                    item[param['name']] = row[columns.index(param['name'])]
+            csvfile = open(file,'r',encoding='utf-8')
+            reader = csv.reader(csvfile, delimiter=',')
+            line_count = 0
+            for row in reader:
+                if line_count == 0:
+                    columns = row
+                    line_count += 1
+                else:
+                    report_items += 1
+                    for item in assets:
+                        if item['Title'] in row[0] and item['Device'] in file.lower():
+                            item['Visibility'] = 'Yes'
+                            for param in params:
+                                item[param['name']] = row[columns.index(param['name'])]
 
 
 def initiate_html_report(environment, time, html_report_name):
@@ -279,6 +279,8 @@ def archive_report(html_file):
                     print(cl.format('blue', '{0:<100}'.format(file)), cl.format('yellow', 'was archived as a copy'))
                 elif html_file in file and not 'last_results.html' == file:
                     shutil.copy(file, path + file)
+                    if os.path.exists(os.getcwd()+'/last_results.html'):
+                        os.remove('last_results.html')
                     os.rename(file, 'last_results.html')
                     print(cl.format('blue', '{0:<100}'.format(file)), cl.format('yellow', 'was archived as a copy'))
             return True
@@ -286,6 +288,8 @@ def archive_report(html_file):
             print(cl.format('blue', 'Results were not archived.'))
             for file in os.listdir('.'):
                 if html_file in file:
+                    if os.path.exists(os.getcwd()+'/last_results.html'):
+                        os.remove('last_results.html')
                     os.rename(file, 'last_results.html')
             return False
         else:
