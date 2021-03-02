@@ -107,7 +107,7 @@ def prepare_assets_list():
                 else:
                     report_items += 1
                     for item in assets:
-                        if item['Title'] in row[0] and item['Device'] in file.lower():
+                        if item['Title'].lower() in row[0].lower() and item['Device'] in file.lower():
                             item['Visibility'] = 'Yes'
                             for param in params:
                                 item[param['name']] = row[columns.index(param['name'])]
